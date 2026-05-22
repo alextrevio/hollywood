@@ -1,22 +1,31 @@
-import { Button } from "@/components/ui/button"
+import { Routes, Route } from "react-router-dom"
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
+import { AppLayout } from "@/components/layout/AppLayout"
+import { LoginPage } from "@/pages/LoginPage"
+import { DashboardPage } from "@/pages/DashboardPage"
+import { NewBrandPage } from "@/pages/NewBrandPage"
+import { BrandDetailPage } from "@/pages/BrandDetailPage"
+import { SettingsPage } from "@/pages/SettingsPage"
+import { NotFoundPage } from "@/pages/NotFoundPage"
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-background text-foreground">
-      <div className="text-center space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight">Hollywood</h1>
-        <p className="text-muted-foreground">Brand Studio · Fase 1 — Brand Vault</p>
-      </div>
-      <div className="flex flex-wrap justify-center gap-3">
-        <Button>Primario</Button>
-        <Button variant="secondary">Secundario</Button>
-        <Button variant="outline">Outline</Button>
-        <Button variant="destructive">Destructivo</Button>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        Tailwind v3 + shadcn/ui (new-york · zinc) — alias @/ funcionando ✅
-      </p>
-    </div>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* Protected app routes: ProtectedRoute redirects to /login if there is
+          no session, then AppLayout provides the sidebar + topbar shell. */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/brands/new" element={<NewBrandPage />} />
+          <Route path="/brands/:slug" element={<BrandDetailPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Route>
+      </Route>
+
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   )
 }
 
