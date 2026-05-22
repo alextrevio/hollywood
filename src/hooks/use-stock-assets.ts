@@ -37,6 +37,24 @@ export function useStockCounts() {
   })
 }
 
+/** Carga stock_assets por una lista de IDs (para el stock sugerido de un brief). */
+export function useStockAssetsByIds(ids: string[]) {
+  return useQuery({
+    queryKey: ["stock-by-ids", [...ids].sort()],
+    enabled: ids.length > 0,
+    queryFn: async (): Promise<
+      Pick<StockAsset, "id" | "title" | "storage_path" | "category">[]
+    > => {
+      const { data, error } = await supabase
+        .from("stock_assets")
+        .select("id, title, storage_path, category")
+        .in("id", ids)
+      if (error) throw error
+      return data
+    },
+  })
+}
+
 export interface UploadStockInput {
   file: File
   title: string | null

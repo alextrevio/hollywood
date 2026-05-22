@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { useAuth } from "@/hooks/use-auth"
 import { useProfile, useUpdateProfile } from "@/hooks/use-profile"
+import { CostsCard } from "@/components/settings/CostsCard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -82,6 +83,8 @@ export function SettingsPage() {
           )}
         </CardContent>
       </Card>
+
+      <CostsCard />
     </div>
   )
 }

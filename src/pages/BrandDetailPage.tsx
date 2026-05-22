@@ -4,6 +4,7 @@ import { IdentityTab } from "@/components/brand/IdentityTab"
 import { LogosTab } from "@/components/brand/LogosTab"
 import { StockTab } from "@/components/brand/StockTab"
 import { ReferencesTab } from "@/components/brand/ReferencesTab"
+import { IdeasTab } from "@/components/brand/IdeasTab"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -64,6 +65,7 @@ export function BrandDetailPage() {
           <TabsTrigger value="logos">Logos</TabsTrigger>
           <TabsTrigger value="stock">Stock</TabsTrigger>
           <TabsTrigger value="referencias">Referencias</TabsTrigger>
+          <TabsTrigger value="ideas">Ideas</TabsTrigger>
         </TabsList>
         <TabsContent value="identidad" className="pt-6">
           <IdentityTab brandId={brand.id} />
@@ -76,6 +78,9 @@ export function BrandDetailPage() {
         </TabsContent>
         <TabsContent value="referencias" className="pt-6">
           <ReferencesTab brandId={brand.id} />
+        </TabsContent>
+        <TabsContent value="ideas" className="pt-6">
+          <IdeasTab brandId={brand.id} />
         </TabsContent>
       </Tabs>
     </div>

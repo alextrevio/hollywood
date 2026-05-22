@@ -10,6 +10,13 @@ export type StockAsset = Tables<"stock_assets">
 export type BrandReference = Tables<"brand_references">
 export type Profile = Tables<"profiles">
 
+// Phase 2 — Idea Agent
+export type GenerationSession = Tables<"generation_sessions">
+export type Brief = Tables<"briefs">
+export type BriefInsert = TablesInsert<"briefs">
+export type BriefUpdate = TablesUpdate<"briefs">
+export type BriefComment = Tables<"brief_comments">
+
 // Structured shapes for the JSONB columns on brand_identities.
 export interface PaletteColor {
   name: string

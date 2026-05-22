@@ -4,7 +4,9 @@ Guía para Claude Code (y para cualquiera que trabaje en este repo). **Léela an
 
 ## Qué es
 
-Hollywood es un "estudio creativo" interno para gestionar la **identidad de marca** y el **stock visual** de varios clientes (hoteles, restaurantes, etc.). Esta es la **Fase 1: Brand Vault** — la fundación sobre la que se construirán fases posteriores (agente de ideas, composer visual, video corto).
+Hollywood es un "estudio creativo" interno para gestionar la **identidad de marca** y el **stock visual** de varios clientes (hoteles, restaurantes, etc.). Empezó como **Fase 1: Brand Vault** (la fundación) y crece por fases.
+
+**Implementado hasta ahora:** Fase 1 (Brand Vault) y **Fase 2 (Idea Agent)** — ver la sección "Fase 2" más abajo.
 
 ## Stack y versiones
 
@@ -49,15 +51,17 @@ src/
     ui/        # componentes de shadcn (no editar a mano salvo necesidad)
     layout/    # AppLayout, Sidebar, Topbar
     auth/      # ProtectedRoute
-    brand/     # IdentityTab, LogosTab, StockTab, ReferencesTab
+    brand/     # IdentityTab, LogosTab, StockTab, ReferencesTab, IdeasTab, BriefCard, BriefDetailDialog, GenerateIdeasDialog
     shared/    # FileDropzone, AssetImage
+    settings/  # CostsCard
   context/     # AuthProvider + auth-context (estado de sesión)
-  hooks/       # use-auth, use-brands, use-brand-*, use-stock-assets, use-profile, use-signed-url
-  lib/         # supabase (cliente), queryClient, storage, utils
+  hooks/       # use-auth, use-brands, use-brand-*, use-stock-assets, use-profile, use-signed-url, use-briefs, use-costs
+  lib/         # supabase (cliente), queryClient, storage, utils, calendar, edge-functions
   pages/       # una por ruta (Login, Dashboard, NewBrand, BrandDetail, Settings, NotFound)
-  types/       # database.ts (GENERADO por Supabase) + db.ts (aliases y tipos de app)
+  types/       # database.ts (GENERADO por Supabase) + db.ts + briefs.ts
 supabase/
   migrations/  # migraciones SQL versionadas
+  functions/   # Edge Functions Deno: generate-briefs/ + _shared/ (anthropic, cors, types)
   config.toml
 ```
 
@@ -87,6 +91,51 @@ supabase/
 - **Toda tabla nueva** debe tener **RLS activado** con policies explícitas (sin policy = denegado).
 - **Validación doble:** Zod en el cliente *y* constraints/CHECK en la base de datos. No confíes solo en el cliente.
 - Los buckets de Storage son **privados**: para mostrar archivos se usan **signed URLs** (`createSignedUrl`), no URLs públicas.
+- La **`ANTHROPIC_API_KEY`** vive como **secret de Supabase** (`supabase secrets set`), NUNCA en el repo (ni en código, ni en comentarios, ni en `.env.example`). La **`SUPABASE_SERVICE_ROLE_KEY`** solo en `.env.local` (git-ignorado) y jamás en el cliente.
+
+## Fase 2 — Idea Agent
+
+Agente que genera **briefs de campaña** (concepto, headline, copy, CTA, hashtags, formatos, brief visual, stock sugerido) para una marca + ocasión. Corre en una **Supabase Edge Function** (Deno) que llama a **Claude Opus 4.7** vía la API de Anthropic.
+
+### Tablas nuevas (migración `0002_phase2_briefs.sql`)
+
+- **`generation_sessions`** — una fila por llamada de generación (marca, ocasión, objetivo, n.º de ideas, `status` `running|completed|failed`, `total_cost_usd`).
+- **`briefs`** — una idea individual (contenido + `status` `pending|approved|rejected` + trazabilidad: `model_used`, tokens, `cost_usd`, `raw_prompt`/`raw_response`). `brand_id` está **denormalizado** para queries rápidas.
+- **`brief_comments`** — comentarios libres por brief.
+
+Todas con RLS (modelo Fase 1/2: todo para `authenticated`; se refinará por roles después).
+
+### Flujo del agente
+
+1. Tab **"Ideas"** de una marca → "Generar nuevas ideas": ocasión (prellenada con `getRelevantOccasion` de `src/lib/calendar.ts`), objetivo, n.º de ideas (1-15), formatos, notas.
+2. El frontend llama a la función vía `generateBriefs()` (`src/lib/edge-functions.ts`) → `supabase.functions.invoke('generate-briefs', { body, timeout: 90s })`.
+3. La función (`supabase/functions/generate-briefs/index.ts`): verifica JWT → valida el body con **Zod** → carga contexto de marca (identidad, stock ≤50, referencias ≤10) → crea sesión `running` → llama a Claude Opus 4.7 con **tool use** (estructura garantizada) → valida la salida con Zod → calcula costos → inserta los briefs (`pending`) → marca la sesión `completed`. Errores → sesión `failed` + `error_message`.
+4. Aprobar/rechazar/comentar desde el tab Ideas — hooks en `src/hooks/use-briefs.ts` (con optimistic updates + rollback).
+
+Helpers compartidos: `supabase/functions/_shared/` (`anthropic.ts` con precios y manejo de errores, `cors.ts`, `types.ts` con los esquemas Zod y la definición de la herramienta).
+
+### Edge Functions: deploy + secrets
+
+```bash
+# Desplegar — la verificación de JWT está ACTIVA por default; NO pasar --no-verify-jwt:
+supabase functions deploy generate-briefs
+supabase functions list                 # ver status (debe decir ACTIVE)
+
+# Secrets (córrelos en TU terminal, NUNCA con el prefijo ! del chat):
+supabase secrets set ANTHROPIC_API_KEY=<tu-api-key>   # la key real, nunca en el repo
+supabase secrets list                   # muestra NAME + hash, nunca el valor
+supabase secrets unset ANTHROPIC_API_KEY
+```
+
+> ⚠️ **CRÍTICO:** la `ANTHROPIC_API_KEY` y la `SUPABASE_SERVICE_ROLE_KEY` **JAMÁS** van en el repo. La API key vive como **secret de Supabase**; la service_role solo en `.env.local` (git-ignorado).
+
+### Regenerar tipos tras una migración
+
+```bash
+supabase db push
+supabase gen types typescript --linked > src/types/database.ts
+npx tsc -b   # verificar que sigue limpio
+```
 
 ## Notas para Claude
 

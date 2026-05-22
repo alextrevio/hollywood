@@ -215,6 +215,208 @@ export type Database = {
           },
         ]
       }
+      brief_comments: {
+        Row: {
+          body: string
+          brief_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          brief_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          brief_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brief_comments_brief_id_fkey"
+            columns: ["brief_id"]
+            isOneToOne: false
+            referencedRelation: "briefs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brief_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      briefs: {
+        Row: {
+          brand_id: string
+          concept: string
+          copy_body: string
+          cost_usd: number | null
+          created_at: string | null
+          created_by: string | null
+          cta: string | null
+          format_suggestions: Json | null
+          hashtags: string[] | null
+          headline: string
+          id: string
+          model_used: string
+          raw_prompt: string | null
+          raw_response: string | null
+          rejection_reason: string | null
+          session_id: string
+          status: string
+          suggested_stock_ids: string[] | null
+          tokens_input: number | null
+          tokens_output: number | null
+          updated_at: string | null
+          visual_brief: Json | null
+        }
+        Insert: {
+          brand_id: string
+          concept: string
+          copy_body: string
+          cost_usd?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          cta?: string | null
+          format_suggestions?: Json | null
+          hashtags?: string[] | null
+          headline: string
+          id?: string
+          model_used: string
+          raw_prompt?: string | null
+          raw_response?: string | null
+          rejection_reason?: string | null
+          session_id: string
+          status?: string
+          suggested_stock_ids?: string[] | null
+          tokens_input?: number | null
+          tokens_output?: number | null
+          updated_at?: string | null
+          visual_brief?: Json | null
+        }
+        Update: {
+          brand_id?: string
+          concept?: string
+          copy_body?: string
+          cost_usd?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          cta?: string | null
+          format_suggestions?: Json | null
+          hashtags?: string[] | null
+          headline?: string
+          id?: string
+          model_used?: string
+          raw_prompt?: string | null
+          raw_response?: string | null
+          rejection_reason?: string | null
+          session_id?: string
+          status?: string
+          suggested_stock_ids?: string[] | null
+          tokens_input?: number | null
+          tokens_output?: number | null
+          updated_at?: string | null
+          visual_brief?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "briefs_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "briefs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "briefs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "generation_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      generation_sessions: {
+        Row: {
+          brand_id: string
+          completed_at: string | null
+          error_message: string | null
+          extra_notes: string | null
+          format_preferences: string[] | null
+          id: string
+          num_ideas_requested: number
+          objective: string
+          occasion: string | null
+          started_at: string | null
+          status: string
+          total_cost_usd: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          brand_id: string
+          completed_at?: string | null
+          error_message?: string | null
+          extra_notes?: string | null
+          format_preferences?: string[] | null
+          id?: string
+          num_ideas_requested: number
+          objective: string
+          occasion?: string | null
+          started_at?: string | null
+          status?: string
+          total_cost_usd?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          brand_id?: string
+          completed_at?: string | null
+          error_message?: string | null
+          extra_notes?: string | null
+          format_preferences?: string[] | null
+          id?: string
+          num_ideas_requested?: number
+          objective?: string
+          occasion?: string | null
+          started_at?: string | null
+          status?: string
+          total_cost_usd?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generation_sessions_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generation_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
